@@ -19,7 +19,7 @@
 #include "master_board_sdk/master_board_interface.h"
 
 #include <odri_control_interface/common.hpp>
-#include <odri_control_interface/joint_modules.hpp>
+#include <odri_control_interface/joint_modules_masterboard.hpp>
 
 namespace odri_control_interface
 {

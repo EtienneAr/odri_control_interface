@@ -12,7 +12,7 @@
 #pragma once
 
 #include "odri_control_interface/calibration.hpp"
-#include "odri_control_interface/robot.hpp"
+#include "odri_control_interface/robot_masterboard.hpp"
 
 namespace odri_control_interface
 {

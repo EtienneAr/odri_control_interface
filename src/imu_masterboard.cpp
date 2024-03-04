@@ -1,5 +1,4 @@
 /**
- * @file imu.cpp
  * @author Julian Viereck (jviereck@tuebingen.mpg.de)
  * license License BSD-3-Clause
  * @copyright Copyright (c) 2020, New York University and Max Planck
@@ -9,13 +8,13 @@
  * @brief IMU abstraction.
  */
 
-#include "odri_control_interface/imu.hpp"
+#include "odri_control_interface/imu_masterboard.hpp"
 
 #include <iostream>
 
 namespace odri_control_interface
 {
-IMU::IMU(const std::shared_ptr<MasterBoardInterface>& robot_if,
+IMUMatserboard::IMUMatserboard(const std::shared_ptr<MasterBoardInterface>& robot_if,
          RefVectorXl rotate_vector,
          RefVectorXl orientation_vector)
     : robot_if_(robot_if)
@@ -39,44 +38,44 @@ IMU::IMU(const std::shared_ptr<MasterBoardInterface>& robot_if,
     }
 }
 
-IMU::IMU(const std::shared_ptr<MasterBoardInterface>& robot_if)
+IMUMatserboard::IMUMatserboard(const std::shared_ptr<MasterBoardInterface>& robot_if)
     : robot_if_(robot_if),
       rotate_vector_({1, 2, 3}),
       orientation_vector_({1, 2, 3, 4})
 {
 }
 
-const std::shared_ptr<MasterBoardInterface>& IMU::GetMasterBoardInterface()
+const std::shared_ptr<MasterBoardInterface>& IMUMatserboard::GetMasterBoardInterface()
 {
     return robot_if_;
 }
 
-const Eigen::Vector3d& IMU::GetGyroscope()
+const Eigen::Vector3d& IMUMatserboard::GetGyroscope()
 {
     return gyroscope_;
 }
 
-const Eigen::Vector3d& IMU::GetAccelerometer()
+const Eigen::Vector3d& IMUMatserboard::GetAccelerometer()
 {
     return accelerometer_;
 }
 
-const Eigen::Vector3d& IMU::GetLinearAcceleration()
+const Eigen::Vector3d& IMUMatserboard::GetLinearAcceleration()
 {
     return linear_acceleration_;
 }
 
-const Eigen::Vector3d& IMU::GetAttitudeEuler()
+const Eigen::Vector3d& IMUMatserboard::GetAttitudeEuler()
 {
     return attitude_euler_;
 }
 
-const Eigen::Vector4d& IMU::GetAttitudeQuaternion()
+const Eigen::Vector4d& IMUMatserboard::GetAttitudeQuaternion()
 {
     return attitude_quaternion_;
 }
 
-void IMU::ParseSensorData()
+void IMUMatserboard::ParseSensorData()
 {
     int index;
     for (int i = 0; i < 3; i++)

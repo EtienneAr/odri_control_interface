@@ -1,5 +1,4 @@
 /**
- * @file joint_modules.cpp
  * @author Julian Viereck (jviereck@tuebingen.mpg.de)
  * license License BSD-3-Clause
  * @copyright Copyright (c) 2020, New York University and Max Planck
@@ -9,11 +8,11 @@
  * @brief Joint module abstraction for
  */
 
-#include "odri_control_interface/joint_modules.hpp"
+#include "odri_control_interface/joint_modules_masterboard.hpp"
 
 namespace odri_control_interface
 {
-JointModules::JointModules(
+JointModulesMasterboard::JointModulesMasterboard(
     const std::shared_ptr<MasterBoardInterface>& robot_if,
     ConstRefVectorXi motor_numbers,
     double motor_constants,
@@ -24,18 +23,14 @@ JointModules::JointModules(
     ConstRefVectorXd upper_joint_limits,
     double max_joint_velocities,
     double safety_damping)
-    : robot_if_(robot_if),
-      lower_joint_limits_(lower_joint_limits),
-      upper_joint_limits_(upper_joint_limits),
-      max_joint_velocities_(max_joint_velocities),
-      check_joint_limits_(true),
+    : JointModulesAbstract(max_currents, lower_joint_limits, upper_joint_limits, max_joint_velocities, safety_damping),
+      robot_if_(robot_if),
       upper_joint_limits_counter_(0),
       lower_joint_limits_counter_(0),
       velocity_joint_limits_counter_(0),
       motor_drivers_error_counter(0)
 
 {
-    n_ = static_cast<int>(motor_numbers.size());
     nd_ = (n_ + 1) / 2;
 
     // Check input arrays for correct sizes.
@@ -43,18 +38,6 @@ JointModules::JointModules(
     {
         throw std::runtime_error(
             "Motor polarities has different size than motor numbers");
-    }
-
-    if (lower_joint_limits.size() != n_)
-    {
-        throw std::runtime_error(
-            "Lower joint limits has different size than motor numbers");
-    }
-
-    if (upper_joint_limits.size() != n_)
-    {
-        throw std::runtime_error(
-            "Upper joint limits has different size than motor numbers");
     }
 
     // Resize and fill the vectors.
@@ -92,19 +75,12 @@ JointModules::JointModules(
     SetMaximumCurrents(max_currents);
 }
 
-JointModules::~JointModules() {}
-
-const VectorXd& JointModules::GetGearRatios()
+const VectorXd& JointModulesMasterboard::GetGearRatios()
 {
     return gear_ratios_;
 }
 
-int JointModules::GetNumberMotors()
-{
-    return n_;
-}
-
-void JointModules::ParseSensorData()
+void JointModulesMasterboard::ParseSensorData()
 {
     for (int i = 0; i < n_; i++)
     {
@@ -129,7 +105,7 @@ void JointModules::ParseSensorData()
     }
 }
 
-void JointModules::Enable()
+void JointModulesMasterboard::Enable()
 {
     // TODO: Enable this again.
     SetZeroCommands();
@@ -145,7 +121,7 @@ void JointModules::Enable()
     }
 }
 
-void JointModules::SetTorques(ConstRefVectorXd desired_torques)
+void JointModulesMasterboard::SetTorques(ConstRefVectorXd desired_torques)
 {
     for (int i = 0; i < n_; i++)
     {
@@ -155,7 +131,7 @@ void JointModules::SetTorques(ConstRefVectorXd desired_torques)
     }
 }
 
-void JointModules::SetDesiredPositions(ConstRefVectorXd desired_positions)
+void JointModulesMasterboard::SetDesiredPositions(ConstRefVectorXd desired_positions)
 {
     for (int i = 0; i < n_; i++)
     {
@@ -164,7 +140,7 @@ void JointModules::SetDesiredPositions(ConstRefVectorXd desired_positions)
     }
 }
 
-void JointModules::SetDesiredVelocities(ConstRefVectorXd desired_velocities)
+void JointModulesMasterboard::SetDesiredVelocities(ConstRefVectorXd desired_velocities)
 {
     for (int i = 0; i < n_; i++)
     {
@@ -173,7 +149,7 @@ void JointModules::SetDesiredVelocities(ConstRefVectorXd desired_velocities)
     }
 }
 
-void JointModules::SetPositionGains(ConstRefVectorXd desired_gains)
+void JointModulesMasterboard::SetPositionGains(ConstRefVectorXd desired_gains)
 {
     for (int i = 0; i < n_; i++)
     {
@@ -183,7 +159,7 @@ void JointModules::SetPositionGains(ConstRefVectorXd desired_gains)
     }
 }
 
-void JointModules::SetVelocityGains(ConstRefVectorXd desired_gains)
+void JointModulesMasterboard::SetVelocityGains(ConstRefVectorXd desired_gains)
 {
     for (int i = 0; i < n_; i++)
     {
@@ -193,27 +169,7 @@ void JointModules::SetVelocityGains(ConstRefVectorXd desired_gains)
     }
 }
 
-void JointModules::SetZeroGains()
-{
-    SetPositionGains(zero_vector_);
-    SetVelocityGains(zero_vector_);
-}
-
-void JointModules::SetZeroCommands()
-{
-    SetTorques(zero_vector_);
-    SetDesiredPositions(zero_vector_);
-    SetDesiredVelocities(zero_vector_);
-    SetZeroGains();
-}
-
-void JointModules::RunSafetyController()
-{
-    SetZeroCommands();
-    SetVelocityGains(safety_damping_);
-}
-
-void JointModules::SetPositionOffsets(ConstRefVectorXd position_offsets)
+void JointModulesMasterboard::SetPositionOffsets(ConstRefVectorXd position_offsets)
 {
     for (int i = 0; i < n_; i++)
     {
@@ -226,7 +182,7 @@ void JointModules::SetPositionOffsets(ConstRefVectorXd position_offsets)
     ParseSensorData();
 }
 
-void JointModules::EnableIndexOffsetCompensation()
+void JointModulesMasterboard::EnableIndexOffsetCompensation()
 {
     for (int i = 0; i < n_; i++)
     {
@@ -234,37 +190,37 @@ void JointModules::EnableIndexOffsetCompensation()
     }
 }
 
-void JointModules::EnableIndexOffsetCompensation(int i)
+void JointModulesMasterboard::EnableIndexOffsetCompensation(int i)
 {
     motors_[i]->set_enable_index_offset_compensation(true);
 }
 
-const VectorXb& JointModules::HasIndexBeenDetected()
+const VectorXb& JointModulesMasterboard::HasIndexBeenDetected()
 {
     return index_been_detected_;
 }
 
-const VectorXb& JointModules::GetReady()
+const VectorXb& JointModulesMasterboard::GetReady()
 {
     return ready_;
 }
 
-const VectorXb& JointModules::GetEnabled()
+const VectorXb& JointModulesMasterboard::GetEnabled()
 {
     return enabled_;
 }
 
-const VectorXb& JointModules::GetMotorDriverEnabled()
+const VectorXb& JointModulesMasterboard::GetMotorDriverEnabled()
 {
     return motor_driver_enabled_;
 }
 
-const VectorXi& JointModules::GetMotorDriverErrors()
+const VectorXi& JointModulesMasterboard::GetMotorDriverErrors()
 {
     return motor_driver_errors_;
 }
 
-bool JointModules::SawAllIndices()
+bool JointModulesMasterboard::SawAllIndices()
 {
     for (int i = 0; i < n_; i++)
     {
@@ -279,7 +235,7 @@ bool JointModules::SawAllIndices()
 /**
  * @brief Returns true once all motors are enabled and report ready.
  */
-bool JointModules::IsReady()
+bool JointModulesMasterboard::IsReady()
 {
     bool is_ready_ = true;
 
@@ -294,40 +250,30 @@ bool JointModules::IsReady()
     return is_ready_;
 }
 
-const VectorXd& JointModules::GetPositions()
+const VectorXd& JointModulesMasterboard::GetPositions()
 {
     return positions_;
 }
 
-const VectorXd& JointModules::GetVelocities()
+const VectorXd& JointModulesMasterboard::GetVelocities()
 {
     return velocities_;
 }
 
-const VectorXd& JointModules::GetSentTorques()
+const VectorXd& JointModulesMasterboard::GetSentTorques()
 {
     return sent_torques_;
 }
 
-const VectorXd& JointModules::GetMeasuredTorques()
+const VectorXd& JointModulesMasterboard::GetMeasuredTorques()
 {
     return measured_torques_;
-}
-
-void JointModules::DisableJointLimitCheck()
-{
-    check_joint_limits_ = false;
-}
-
-void JointModules::EnableJointLimitCheck()
-{
-    check_joint_limits_ = true;
 }
 
 /**
  * @brief Checks for errors and prints them
  */
-bool JointModules::HasError()
+bool JointModulesMasterboard::HasError()
 {
     bool has_error = false;
 
@@ -447,13 +393,7 @@ bool JointModules::HasError()
     return has_error;
 }
 
-void JointModules::PrintVector(ConstRefVectorXd vector)
-{
-    Eigen::IOFormat CleanFmt(4, 0, ", ", "\n", "[", "]");
-    msg_out_ << vector.transpose().format(CleanFmt);
-}
-
-void JointModules::SetMaximumCurrents(double max_currents)
+void JointModulesMasterboard::SetMaximumCurrents(double max_currents)
 {
     for (int i = 0; i < n_; i++)
     {

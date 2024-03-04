@@ -1,5 +1,4 @@
 /**
- * @file joint_modules.hpp
  * @author Julian Viereck (jviereck@tuebingen.mpg.de)
  * license License BSD-3-Clause
  * @copyright Copyright (c) 2020, New York University and Max Planck
@@ -18,6 +17,8 @@
 
 #include "master_board_sdk/defines.h"
 #include "master_board_sdk/master_board_interface.h"
+#include "odri_control_interface/joint_modules_abstract.hpp"
+
 
 #include <odri_control_interface/common.hpp>
 
@@ -26,7 +27,7 @@ namespace odri_control_interface
 /**
  * @brief Class abstracting the blmc motors to modules.
  */
-class JointModules
+class JointModulesMasterboard : public JointModulesAbstract
 {
 protected:
     std::shared_ptr<MasterBoardInterface> robot_if_;
@@ -35,9 +36,6 @@ protected:
     Eigen::VectorXd gear_ratios_;
     Eigen::VectorXd motor_constants_;
     VectorXi polarities_;
-    Eigen::VectorXd lower_joint_limits_;
-    Eigen::VectorXd upper_joint_limits_;
-    Eigen::VectorXd safety_damping_;
 
     // Cache for results.
     Eigen::VectorXd positions_;
@@ -52,19 +50,9 @@ protected:
     VectorXb motor_driver_enabled_;
     VectorXi motor_driver_errors_;
 
-    Eigen::VectorXd zero_vector_;
-
-    double max_joint_velocities_;
-
-    int n_;
     int nd_;
-
-    bool check_joint_limits_;
-
-    std::ostream& msg_out_ = std::cout;
-
 public:
-    JointModules(const std::shared_ptr<MasterBoardInterface>& robot_if,
+    JointModulesMasterboard(const std::shared_ptr<MasterBoardInterface>& robot_if,
                  ConstRefVectorXi motor_numbers,
                  double motor_constants,
                  double gear_ratios,
@@ -74,31 +62,18 @@ public:
                  ConstRefVectorXd upper_joint_limits,
                  double max_joint_velocities,
                  double safety_damping);
-    virtual ~JointModules();
+    virtual ~JointModulesMasterboard() = default;
 
-    void Enable();
+    void Enable() override;
 
-    void ParseSensorData();
+    void ParseSensorData()  override;
 
-    void SetTorques(ConstRefVectorXd desired_torques);
-    void SetDesiredPositions(ConstRefVectorXd desired_positions);
-    void SetDesiredVelocities(ConstRefVectorXd desired_velocities);
-    void SetPositionGains(ConstRefVectorXd desired_gains);
-    void SetVelocityGains(ConstRefVectorXd desired_gains);
+    void SetTorques(ConstRefVectorXd desired_torques) override;
+    void SetDesiredPositions(ConstRefVectorXd desired_positions) override;
+    void SetDesiredVelocities(ConstRefVectorXd desired_velocities) override;
+    void SetPositionGains(ConstRefVectorXd desired_gains) override;
+    void SetVelocityGains(ConstRefVectorXd desired_gains) override;
     void SetMaximumCurrents(double max_currents);
-
-    /**
-     * @brief Disables the position and velocity gains by setting them to zero.
-     */
-    void SetZeroGains();
-    void SetZeroCommands();
-
-    /**
-     * @brief Overwrites the control commands for a default safety controller.
-     * The safety controller applies a D control to all the joints based
-     * on the provided `safety_damping`.
-     */
-    virtual void RunSafetyController();
 
     // Used for calibration.
     void SetPositionOffsets(ConstRefVectorXd position_offsets);
@@ -117,26 +92,20 @@ public:
     /**
      * @brief Returns true once all motors are enabled and report ready.
      */
-    bool IsReady();
+    bool IsReady() override;
 
-    const VectorXd& GetPositions();
-    const VectorXd& GetVelocities();
-    const VectorXd& GetSentTorques();
-    const VectorXd& GetMeasuredTorques();
+    const VectorXd& GetPositions() override;
+    const VectorXd& GetVelocities() override;
+    const VectorXd& GetSentTorques() override;
+    const VectorXd& GetMeasuredTorques() override;
 
     const VectorXd& GetGearRatios();
 
-    int GetNumberMotors();
-
-    void DisableJointLimitCheck();
-    void EnableJointLimitCheck();
 
     /**
      * @brief Checks for errors and prints them
      */
-    bool HasError();
-
-    void PrintVector(ConstRefVectorXd vector);
+    bool HasError()  override;
 
 protected:
     int upper_joint_limits_counter_;
@@ -144,5 +113,8 @@ protected:
     int velocity_joint_limits_counter_;
     int motor_drivers_error_counter;
 };
+
+// For legacy purpose
+using JointModules = JointModulesMasterboard;
 
 }  // namespace odri_control_interface

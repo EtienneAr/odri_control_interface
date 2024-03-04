@@ -1,5 +1,4 @@
 /**
- * @file imu.hpp
  * @author Julian Viereck (jviereck@tuebingen.mpg.de)
  * license License BSD-3-Clause
  * @copyright Copyright (c) 2020, New York University and Max Planck
@@ -20,13 +19,14 @@
 #include "master_board_sdk/master_board_interface.h"
 
 #include <odri_control_interface/common.hpp>
+#include <odri_control_interface/imu_abstract.hpp>
 
 namespace odri_control_interface
 {
 /**
  * @brief Class for dealing with the IMU.
  */
-class IMU
+class IMUMatserboard : public IMUAbstract
 {
 protected:
     std::shared_ptr<MasterBoardInterface> robot_if_;
@@ -41,28 +41,30 @@ protected:
     Eigen::Vector4d attitude_quaternion_;
 
 public:
-    IMU(const std::shared_ptr<MasterBoardInterface>& robot_if,
+    IMUMatserboard(const std::shared_ptr<MasterBoardInterface>& robot_if);
+    IMUMatserboard(const std::shared_ptr<MasterBoardInterface>& robot_if,
         RefVectorXl rotate_vector,
         RefVectorXl orientation_vector);
-
-    IMU(const std::shared_ptr<MasterBoardInterface>& robot_if);
 
     // If needed, add some error handling for the IMU as well.
     // For instance, check for bounds on the maximum linear acceleration
     // or the maximum angular velocity that should be detected as an error.
-    bool HasError()
+    bool HasError() override
     {
         return false;
     }
 
-    void ParseSensorData();
+    void ParseSensorData() override;
 
     const std::shared_ptr<MasterBoardInterface>& GetMasterBoardInterface();
-    const Eigen::Vector3d& GetGyroscope();
-    const Eigen::Vector3d& GetAccelerometer();
-    const Eigen::Vector3d& GetLinearAcceleration();
-    const Eigen::Vector3d& GetAttitudeEuler();
-    const Eigen::Vector4d& GetAttitudeQuaternion();
+    const Eigen::Vector3d& GetGyroscope() override;
+    const Eigen::Vector3d& GetAccelerometer() override;
+    const Eigen::Vector3d& GetLinearAcceleration() override;
+    const Eigen::Vector3d& GetAttitudeEuler() override;
+    const Eigen::Vector4d& GetAttitudeQuaternion() override;
 };
+
+// For legacy purpose
+using IMU = IMUMatserboard;
 
 }  // namespace odri_control_interface
